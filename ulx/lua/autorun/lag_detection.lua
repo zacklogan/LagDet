@@ -4,17 +4,13 @@ print("Lag detection starting...")
 EntitysLagg = 0
 EntityslastOS = 0
 EntitysTimer = 1
-Entitystbl = {}
-EntitysCanFreeze = {
-    "prop_physics"
-}
 EntitysMinThinks = 40
-timer.Simple(5,function() -- to ignore the thinks at startup (it always lags then:P)
-    hook.Add("Think","EntitysLagg",function() -- add the hook
-        EntitysTimer = EntitysTimer + 1 -- add the checker
-        if os.time() != EntityslastOS then -- if theres a second passed
-            EntitysOScheck() -- do the check function
-            EntityslastOS = os.time() -- update the last time!
+timer.Simple(5,function() 
+    hook.Add("Think","EntitysLagg",function() 
+        EntitysTimer = EntitysTimer + 1 
+        if os.time() != EntityslastOS then 
+            EntitysOScheck() 
+            EntityslastOS = os.time() 
         end
     end)
 end)
@@ -78,34 +74,53 @@ function ulx.lagtrigger( calling_ply, tps )
 	EntitysMinThinks = tps
 	ulx.fancyLogAdmin( calling_ply, "#A changed the lag detection trigger to #i TPS", tps )
 end
-
 local lagtps = ulx.command( "Lag Detect", "ulx lagtrigger", ulx.lagtrigger, "!lagtrigger" )
 lagtps:addParam{ type=ULib.cmds.NumArg, min=30, default=30, hint="TPS", ULib.cmds.round }
 lagtps:defaultAccess( ULib.ACCESS_ADMIN )
 lagtps:help( "Changes the TPS the lag detection will go off at." )
 
 function ulx.lag( calling_ply )
-	local i = 0
-	for k, v in pairs( ents.FindByClass( "prop_*" ) ) do
-		local phys = v:GetPhysicsObject()
-		if (IsValid(phys)) then
-			if(phys:IsMotionEnabled) {
-				i = i + 1
-				phys:EnableMotion(false)
-			}
-		end
-	end
-  if not calling_ply:IsValid() then
-			print("Server: Command issued! Props Froze: " .. i )
-	else
-    for c=#players, 1, -1 do
-      local t = players[ c ]
-      if ULib.ucl.query( t, seeasayAccess ) then
-        t:PrintColor(Color( 255, 0, 0 ), "[Admin Notification]:", Color( 255, 255, 255 ), " " .. calling_ply .. " has froze a total of " .. i .. " props!" )
-      end    
+    total = 0
+    track = {};
+    for k, v in ipairs( ents.FindByClass( "prop_physics" ) ) do
+      local phys = v:GetPhysicsObject()
+      if (phys and phys:IsValid()) then
+        local owner = v:GetOwner()
+        if(phys:IsMotionEnabled() == true) then
+          if(owner != "world") then
+            total = total + 1
+            phys:EnableMotion(false)
+            if( track[ owner:Nick() ] ) then
+              track[ owner:Nick() ] = track[ owner:Nick() ] + 1;
+            else
+              track[ owner:Nick() ] = 1;
+            end
+          end
+        end
+      end
     end
-	end
+    if not calling_ply:IsValid() then
+      for c=#players, 1, -1 do
+        local t = players[ c ]
+        if ULib.ucl.query( t, seeasayAccess ) then
+          t:PrintColor(Color( 255, 0, 0 ), "[Admin Notification]:", Color( 255, 255, 255 ), " Console has froze a total of " .. i .. " props!  List of players props frozen:" )
+          for e, v in pairs( track ) do
+            t:PrintColor(Color( 255, 255, 255 ), e .. " : " .. v)
+          end
+        end    
+      end
+    else
+      for c=#players, 1, -1 do
+        local t = players[ c ]
+        if ULib.ucl.query( t, seeasayAccess ) then
+          t:PrintColor(Color( 255, 0, 0 ), "[Admin Notification]:", Color( 255, 255, 255 ), " " .. calling_ply .. " has froze a total of " .. i .. " props!  List of players props frozen:" )
+          for e, v in pairs( track ) do
+            t:PrintColor(Color( 255, 255, 255 ), e .. " : " .. v)
+          end
+        end    
+      end
+    end
 end
 local lag = ulx.command( "Lag Detect", "ulx lag", ulx.lag, "!lag" )
-lag:defaultAccess( ULib.ACCESS_ADMIN )
-lag:help( "Freezes all props to prevent lag." )
+lag:defaultAccess( ULib.ACCESS_SUPERADMIN )
+lag:help( "Freezes all props, used by the lag detect system but feel free to use it!" )
