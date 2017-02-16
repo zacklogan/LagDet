@@ -1,7 +1,7 @@
 if CLIENT then
 
   net.Receive( "PrintColor", function()
-	  chat.AddText( unpack( net.ReadTable() ) )
+    chat.AddText( unpack( net.ReadTable() ) )
   end )
   
 else
@@ -11,20 +11,20 @@ else
   local Meta = FindMetaTable( "Player" )
 
   function Meta:PrintColor( ... )
-	  net.Start( "PrintColor" )
-		net.WriteTable( { ... } )
-	  net.Send( self )
+    net.Start( "PrintColor" )
+    net.WriteTable( { ... } )
+    net.Send( self )
   end
 
   hook.Add("ShouldCollide","ShouldCollideTest",function(ent1,ent2)
     if ent1:IsPlayer() and !ent2:IsPlayer() then
       if ent2.ATOwner!=ent1 and ent2.isheld then
-	      return false
-	    end
+        return false
+      end
     elseif ent2:IsPlayer() and !ent1:IsPlayer() then
-	    if ent1.ATOwner!=ent2 and ent1.isheld then
-	      return false
-	    end
+      if ent1.ATOwner!=ent2 and ent1.isheld then
+        return false
+      end
     end
   end)
 
