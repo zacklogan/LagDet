@@ -41,6 +41,7 @@ function EntitysOScheck()
     end
 end
 
+
 util.AddNetworkString( "PrintColor" )
 
 local Meta = FindMetaTable( "Player" )
@@ -85,7 +86,7 @@ function ulx.lag( calling_ply )
     for k, v in ipairs( ents.FindByClass( "prop_physics" ) ) do
       local phys = v:GetPhysicsObject()
       if (phys and phys:IsValid()) then
-        local owner = v:GetOwner()
+        local owner = v:CPPIGetOwner()
         if(phys:IsMotionEnabled() == true) then
           if(owner != "world") then
             total = total + 1
@@ -100,23 +101,29 @@ function ulx.lag( calling_ply )
       end
     end
     if not calling_ply:IsValid() then
-      for c=#players, 1, -1 do
-        local t = players[ c ]
-        if ULib.ucl.query( t, seeasayAccess ) then
-          t:PrintColor(Color( 255, 0, 0 ), "[Admin Notification]:", Color( 255, 255, 255 ), " Console has froze a total of " .. i .. " props!  List of players props frozen:" )
-          for e, v in pairs( track ) do
-            t:PrintColor(Color( 255, 255, 255 ), e .. " : " .. v)
-          end
+      for k, v in pairs( player.GetAll() ) do
+        if ULib.ucl.query( v, seeasayAccess ) then
+		  if (total != 0) then
+			v:PrintColor(Color( 255, 0, 0 ), "[Admin Notification]:", Color( 255, 255, 255 ), " Console has froze a total of " .. total .. " props!  List of players props frozen:" )
+			for e, t in pairs( track ) do
+              v:PrintColor(Color( 255, 255, 255 ), e .. " : " .. t)
+            end
+		  else
+		    v:PrintColor(Color( 255, 0, 0 ), "[Admin Notification]:", Color( 255, 255, 255 ), " Console has froze a total of " .. total .. " props!" )
+		  end
         end    
       end
     else
-      for c=#players, 1, -1 do
-        local t = players[ c ]
-        if ULib.ucl.query( t, seeasayAccess ) then
-          t:PrintColor(Color( 255, 0, 0 ), "[Admin Notification]:", Color( 255, 255, 255 ), " " .. calling_ply .. " has froze a total of " .. i .. " props!  List of players props frozen:" )
-          for e, v in pairs( track ) do
-            t:PrintColor(Color( 255, 255, 255 ), e .. " : " .. v)
-          end
+      for k, v in pairs( player.GetAll() ) do
+        if ULib.ucl.query( v, seeasayAccess ) then
+          if (total != 0) then
+			v:PrintColor(Color( 255, 0, 0 ), "[Admin Notification]:", Color( 255, 255, 255 ), " " .. calling_ply:Nick() .. " has froze a total of " .. total .. " props!  List of players props frozen:" )
+			for e, t in pairs( track ) do
+              v:PrintColor(Color( 255, 255, 255 ), e .. " : " .. t)
+            end
+		  else
+		    v:PrintColor(Color( 255, 0, 0 ), "[Admin Notification]:", Color( 255, 255, 255 ), " " .. calling_ply:Nick() .. " has froze a total of " .. total .. " props!" )
+		  end
         end    
       end
     end
